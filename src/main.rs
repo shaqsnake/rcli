@@ -1,8 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_genpass, process_text_generate,
-    process_text_sign, process_text_verify, Base64Subcommand, Opts, SubCommand, TextSubCommand,
+    process_csv, process_decode, process_encode, process_genpass, process_text_decrypt,
+    process_text_encrypt, process_text_generate, process_text_sign, process_text_verify,
+    Base64Subcommand, Opts, SubCommand, TextSubCommand,
 };
 use zxcvbn::zxcvbn;
 
@@ -41,7 +42,7 @@ fn main() -> Result<()> {
                 println!("{}", String::from_utf8(decoded)?);
             }
         },
-        SubCommand::Text(text_opts) => match text_opts {
+        SubCommand::Text(opts) => match opts {
             TextSubCommand::Sign(opts) => {
                 let signed = process_text_sign(&opts.input, &opts.key, opts.format)?;
                 println!("{}", signed);
@@ -52,6 +53,14 @@ fn main() -> Result<()> {
             }
             TextSubCommand::Generate(opts) => {
                 process_text_generate(opts.format, &opts.output)?;
+            }
+            TextSubCommand::Encrypt(opts) => {
+                let encrypted = process_text_encrypt(&opts.input, &opts.key, opts.format)?;
+                println!("{}", encrypted);
+            }
+            TextSubCommand::Decrypt(opts) => {
+                let decrypted = process_text_decrypt(&opts.input, &opts.key, opts.format)?;
+                println!("{}", decrypted);
             }
         },
     }
