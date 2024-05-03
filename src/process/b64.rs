@@ -1,4 +1,4 @@
-use crate::cli::Base64Format;
+use crate::{cli::Base64Format, get_reader};
 use anyhow::Result;
 use base64::{
     engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
@@ -30,14 +30,6 @@ pub fn process_decode(input: &str, format: Base64Format) -> Result<()> {
     };
     println!("{}", String::from_utf8(decoded)?);
     Ok(())
-}
-
-fn get_reader(input: &str) -> Result<Box<dyn std::io::Read>> {
-    if input == "-" {
-        Ok(Box::new(std::io::stdin()))
-    } else {
-        Ok(Box::new(std::fs::File::open(input)?))
-    }
 }
 
 #[cfg(test)]
