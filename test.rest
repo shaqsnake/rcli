@@ -1,2 +1,2 @@
 ### test index page
-GET http://localhost:8080/
+GET http://localhost:8080/Cargo.toml

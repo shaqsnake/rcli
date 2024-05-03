@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
         },
         SubCommand::Http(http_opts) => match http_opts {
             HttpSubCommand::Serve(opts) => {
-                process_http_serve(&opts.dir, opts.port).await?;
+                process_http_serve(opts.dir, opts.port).await?;
             }
         },
     }
