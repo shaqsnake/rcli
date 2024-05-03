@@ -1,9 +1,10 @@
 use anyhow::Result;
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_genpass, process_text_sign,
-    process_text_verify, Base64Subcommand, Opts, SubCommand, TextSubCommand,
+    process_csv, process_decode, process_encode, process_genpass, process_text_generate,
+    process_text_sign, process_text_verify, Base64Subcommand, Opts, SubCommand, TextSubCommand,
 };
+use zxcvbn::zxcvbn;
 
 fn main() -> Result<()> {
     let opts = Opts::parse();
@@ -17,28 +18,40 @@ fn main() -> Result<()> {
             process_csv(&opts.input, output, opts.format)?;
         }
         SubCommand::GenPass(opts) => {
-            process_genpass(
+            let password = process_genpass(
                 opts.length,
                 opts.uppercase,
                 opts.lowercase,
                 opts.number,
                 opts.symbol,
             )?;
+            println!("{}", password);
+
+            // use zxcvbn to estimate password strength
+            let estimate = zxcvbn(&password, &[])?;
+            eprintln!("Password strength: {}", estimate.score());
         }
         SubCommand::Base64(base64_opts) => match base64_opts {
             Base64Subcommand::Encode(opts) => {
-                process_encode(&opts.input, opts.format)?;
+                let encoded = process_encode(&opts.input, opts.format)?;
+                println!("{}", encoded);
             }
             Base64Subcommand::Decode(opts) => {
-                process_decode(&opts.input, opts.format)?;
+                let decoded = process_decode(&opts.input, opts.format)?;
+                println!("{}", String::from_utf8(decoded)?);
             }
         },
         SubCommand::Text(text_opts) => match text_opts {
             TextSubCommand::Sign(opts) => {
-                process_text_sign(&opts.input, &opts.key, opts.format)?;
+                let signed = process_text_sign(&opts.input, &opts.key, opts.format)?;
+                println!("{}", signed);
             }
             TextSubCommand::Verify(opts) => {
-                process_text_verify(&opts.input, &opts.key, opts.format, &opts.sig)?;
+                let verified = process_text_verify(&opts.input, &opts.key, opts.format, &opts.sig)?;
+                println!("{}", verified);
+            }
+            TextSubCommand::Generate(opts) => {
+                process_text_generate(opts.format, &opts.output)?;
             }
         },
     }

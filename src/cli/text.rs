@@ -1,9 +1,9 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
 
-use super::verify_file;
+use super::{verify_file, verify_path};
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
@@ -12,6 +12,9 @@ pub enum TextSubCommand {
 
     #[command(about = "Verify a text with a public/session key")]
     Verify(TextVerifyOpts),
+
+    #[command(about = "Generate a random blake3 key or ed25519 key pair")]
+    Generate(KeyGenerateOpts),
 }
 
 #[derive(Debug, Parser)]
@@ -22,7 +25,7 @@ pub struct TextSignOpts {
     #[arg(short, long, value_parser = verify_file)]
     pub key: String,
 
-    #[arg(long, default_value = "blake3", value_parser = parse_format)]
+    #[arg(long, default_value = "blake3", value_parser = parse_text_sign_format)]
     pub format: TextSignFormat,
 }
 
@@ -34,7 +37,7 @@ pub struct TextVerifyOpts {
     #[arg(short, long, value_parser = verify_file)]
     pub key: String,
 
-    #[arg(long, default_value = "blake3", value_parser = parse_format)]
+    #[arg(long, default_value = "blake3", value_parser = parse_text_sign_format)]
     pub format: TextSignFormat,
 
     #[arg(short, long)]
@@ -47,7 +50,16 @@ pub enum TextSignFormat {
     Ed25519,
 }
 
-fn parse_format(format: &str) -> Result<TextSignFormat, anyhow::Error> {
+#[derive(Debug, Parser)]
+pub struct KeyGenerateOpts {
+    #[arg(short, long, default_value = "blake3", value_parser = parse_text_sign_format)]
+    pub format: TextSignFormat,
+
+    #[arg(short, long, value_parser = verify_path)]
+    pub output: PathBuf,
+}
+
+fn parse_text_sign_format(format: &str) -> Result<TextSignFormat, anyhow::Error> {
     format.parse()
 }
 
