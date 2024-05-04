@@ -1,2 +1,5 @@
-### test index page
+### test static file
 GET http://localhost:8080/Cargo.toml
+
+### test static file with tower-http
+GET http://localhost:8080/tower/Cargo.toml
