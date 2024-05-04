@@ -3,6 +3,11 @@ use std::{fmt, path::PathBuf, str::FromStr};
 use anyhow::Result;
 use clap::Parser;
 
+use crate::{
+    process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
+    process_text_verify, CmdExecutor,
+};
+
 use super::{verify_file, verify_path};
 
 #[derive(Debug, Parser)]
@@ -17,10 +22,24 @@ pub enum TextSubCommand {
     Generate(KeyGenerateOpts),
 
     #[command(about = "Encrypt a text with a key")]
-    Encrypt(TextCipherOpts),
+    Encrypt(TextEncryptOpts),
 
     #[command(about = "Decrypt a text with a key")]
-    Decrypt(TextCipherOpts),
+    Decrypt(TextDecryptOpts),
+}
+
+impl CmdExecutor for TextSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await?,
+            TextSubCommand::Verify(opts) => opts.execute().await?,
+            TextSubCommand::Generate(opts) => opts.execute().await?,
+            TextSubCommand::Encrypt(opts) => opts.execute().await?,
+            TextSubCommand::Decrypt(opts) => opts.execute().await?,
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -33,6 +52,15 @@ pub struct TextSignOpts {
 
     #[arg(long, default_value = "blake3", value_parser = parse_text_format)]
     pub format: TextSignFormat,
+}
+
+impl CmdExecutor for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let signed = process_text_sign(&self.input, &self.key, self.format)?;
+        println!("{}", signed);
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -50,6 +78,15 @@ pub struct TextVerifyOpts {
     pub sig: String,
 }
 
+impl CmdExecutor for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let verified = process_text_verify(&self.input, &self.key, self.format, &self.sig)?;
+        println!("{}", verified);
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum TextSignFormat {
     Blake3,
@@ -64,6 +101,14 @@ pub struct KeyGenerateOpts {
 
     #[arg(short, long, value_parser = verify_path)]
     pub output: PathBuf,
+}
+
+impl CmdExecutor for KeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        process_text_generate(self.format, &self.output)?;
+
+        Ok(())
+    }
 }
 
 fn parse_text_format(format: &str) -> Result<TextSignFormat, anyhow::Error> {
@@ -94,7 +139,7 @@ impl fmt::Display for TextSignFormat {
 }
 
 #[derive(Debug, Parser)]
-pub struct TextCipherOpts {
+pub struct TextEncryptOpts {
     #[arg(short, long, value_parser = verify_file, default_value = "-")]
     pub input: String,
 
@@ -103,4 +148,34 @@ pub struct TextCipherOpts {
 
     #[arg(long, default_value = "chacha20poly1305", value_parser = parse_text_format)]
     pub format: TextSignFormat,
+}
+
+impl CmdExecutor for TextEncryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encrypted = process_text_encrypt(&self.input, &self.key, self.format)?;
+        println!("{}", encrypted);
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Parser)]
+pub struct TextDecryptOpts {
+    #[arg(short, long, value_parser = verify_file, default_value = "-")]
+    pub input: String,
+
+    #[arg(short, long, value_parser = verify_file)]
+    pub key: String,
+
+    #[arg(long, default_value = "chacha20poly1305", value_parser = parse_text_format)]
+    pub format: TextSignFormat,
+}
+
+impl CmdExecutor for TextDecryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decrypted = process_text_decrypt(&self.input, &self.key, self.format)?;
+        println!("{}", decrypted);
+
+        Ok(())
+    }
 }
