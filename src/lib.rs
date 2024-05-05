@@ -1,10 +1,12 @@
 mod cli;
 mod process;
 mod utils;
+use enum_dispatch::enum_dispatch;
 
 pub use cli::{
-    Base64Format, Base64Subcommand, HttpSubCommand, Opts, SubCommand, TextSignFormat,
-    TextSubCommand,
+    Base64Format, Base64Subcommand, CsvOpts, DecodeOpts, EncodeOpts, GenPassOpts, HttpServeOpts,
+    HttpSubCommand, KeyGenerateOpts, Opts, SubCommand, TextDecryptOpts, TextEncryptOpts,
+    TextSignFormat, TextSignOpts, TextSubCommand, TextVerifyOpts,
 };
 pub use process::{
     process_csv, process_decode, process_encode, process_genpass, process_http_serve,
@@ -14,6 +16,7 @@ pub use process::{
 pub use utils::get_reader;
 
 #[allow(async_fn_in_trait)]
+#[enum_dispatch]
 pub trait CmdExecutor {
     async fn execute(self) -> anyhow::Result<()>;
 }
