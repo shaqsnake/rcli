@@ -2,6 +2,7 @@ mod base64;
 mod csv;
 mod genpass;
 mod http;
+mod jwt;
 mod text;
 
 use clap::Parser;
@@ -13,6 +14,7 @@ pub use self::{
     csv::{CsvOpts, OutputFormat},
     genpass::GenPassOpts,
     http::{HttpServeOpts, HttpSubCommand},
+    jwt::{JwtSignOpts, JwtSubCommand, JwtVerifyOpts},
     text::{
         KeyGenerateOpts, TextDecryptOpts, TextEncryptOpts, TextSignFormat, TextSignOpts,
         TextSubCommand, TextVerifyOpts,
@@ -35,14 +37,17 @@ pub enum SubCommand {
     #[command(name = "genpass", about = "Generate a random password")]
     GenPass(GenPassOpts),
 
-    #[command(subcommand)]
+    #[command(subcommand, about = "Base64 encode/decode")]
     Base64(Base64Subcommand),
 
-    #[command(subcommand)]
+    #[command(subcommand, about = "Text sign/verify")]
     Text(TextSubCommand),
 
-    #[command(subcommand)]
+    #[command(subcommand, about = "Http server")]
     Http(HttpSubCommand),
+
+    #[command(subcommand, about = "Work with JSON Web Tokens")]
+    Jwt(JwtSubCommand),
 }
 
 fn verify_file(filename: &str) -> Result<String, &'static str> {
